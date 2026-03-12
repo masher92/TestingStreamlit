@@ -4,7 +4,7 @@ import altair as alt
 
 st.set_page_config(page_title="Goal Tracker", page_icon="⚽")
 
-st.title("⚽ 5 aside Goal Tracker")
+st.title("⚽ Weekly Goal Tracker")
 
 # --- Data ---
 goals = pd.DataFrame({
@@ -22,13 +22,14 @@ players = ["Molly", "Eleanor", "Billy"]
 
 # --- Controls ---
 with st.container(border=True):
+
     selected_players = st.multiselect(
         "Select players",
         players,
         default=players
     )
 
-    cumulative = st.toggle("Show cumulative goals", value=False)
+    cumulative = st.toggle("Show cumulative goals")
 
 # --- Prepare data ---
 chart_data = goals[["Date"] + selected_players]
@@ -40,11 +41,12 @@ long_data = chart_data.melt(
 )
 
 long_data["Cumulative Goals"] = long_data.groupby("Player")["Goals"].cumsum()
+long_data["Week"] = long_data["Date"].dt.strftime("%d %b")
 
-# --- Leaderboard stats ---
-totals = long_data.groupby("Player")["Goals"].sum().sort_values(ascending=False)
-
+# --- Leaderboard ---
 st.subheader("🏆 Leaderboard")
+
+totals = long_data.groupby("Player")["Goals"].sum().sort_values(ascending=False)
 
 cols = st.columns(len(totals))
 
@@ -52,33 +54,25 @@ for i, (player, score) in enumerate(totals.items()):
     cols[i].metric(player, score)
 
 # --- Chart ---
-st.subheader("📊 Goals over time")
+st.subheader("📊 Goals by week")
 
 if cumulative:
     y_col = "Cumulative Goals"
     y_title = "Total Goals"
-
-    chart = alt.Chart(long_data).mark_bar().encode(
-        x=alt.X("Date:T", title="Week"),
-        y=alt.Y(f"{y_col}:Q", title=y_title),
-        color="Player:N",
-        xOffset="Player",
-        tooltip=["Player", "Date", "Goals", "Cumulative Goals"]
-    )
-
 else:
     y_col = "Goals"
     y_title = "Goals scored"
 
-    chart = alt.Chart(long_data).mark_bar().encode(
-        x=alt.X("Date:T", title="Week"),
-        y=alt.Y(f"{y_col}:Q", title=y_title),
-        color="Player:N",
-        xOffset="Player",
-        tooltip=["Player", "Date", "Goals"]
-    )
+chart = alt.Chart(long_data).mark_bar().encode(
+    x=alt.X("Week:N", title="Week"),
+    xOffset=alt.XOffset("Player:N"),
+    y=alt.Y(f"{y_col}:Q", title=y_title),
+    color=alt.Color("Player:N", legend=alt.Legend(title="Player")),
+    tooltip=["Player", "Week", "Goals", "Cumulative Goals"]
+).properties(height=400)
 
-st.altair_chart(chart.properties(height=400), use_container_width=True)
+
+st.altair_chart(chart, use_container_width=True)
 
 # --- Raw data ---
 with st.expander("View raw data"):
