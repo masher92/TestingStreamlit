@@ -170,7 +170,7 @@ for i, tournament in enumerate(TOURNAMENTS):
                 st.rerun()
                 
         if IS_ADMIN:
-         st.markdown("### 🔐 Enter Match Result")
+            st.markdown("### 🔐 Enter Match Result")
 
             col1, col2 = st.columns(2)
 
