@@ -171,20 +171,41 @@ for i, tournament in enumerate(TOURNAMENTS):
                 score2 = st.number_input("Score 2", min_value=0, step=1, key=f"{tournament}_s2")
 
             if st.button("Submit Result", key=f"{tournament}_btn"):
-
+            
                 if team1 == team2:
                     st.error("A team cannot play itself.")
                 else:
-                    st.session_state.data = pd.concat([
-                        st.session_state.data,
-                        pd.DataFrame([{
-                            "tournament": tournament,
-                            "team1": team1,
-                            "team2": team2,
-                            "score1": score1,
-                            "score2": score2
-                        }])
-                    ], ignore_index=True)
-
-                    save_data(st.session_state.data)
-                    st.rerun()
+                    # -------------------------------
+                    # CHECK FOR DUPLICATE MATCH
+                    # -------------------------------
+                    existing = st.session_state.data[
+                        (st.session_state.data["tournament"] == tournament) &
+                        (
+                            (
+                                (st.session_state.data["team1"] == team1) &
+                                (st.session_state.data["team2"] == team2)
+                            ) |
+                            (
+                                (st.session_state.data["team1"] == team2) &
+                                (st.session_state.data["team2"] == team1)
+                            )
+                        )
+                    ]
+            
+                    if not existing.empty:
+                        st.error("⚠️ This fixture already has a result recorded.")
+                    else:
+                        st.session_state.data = pd.concat([
+                            st.session_state.data,
+                            pd.DataFrame([{
+                                "tournament": tournament,
+                                "team1": team1,
+                                "team2": team2,
+                                "score1": score1,
+                                "score2": score2
+                            }])
+                        ], ignore_index=True)
+            
+                        save_data(st.session_state.data)
+                        st.success("Result saved!")
+                        st.rerun()
