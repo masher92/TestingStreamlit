@@ -425,38 +425,44 @@ st.set_page_config(page_title="Tournament System", layout="wide")
 # -------------------------------
 # MODE CONTROL
 # -------------------------------
-mode = st.query_params.get("mode", "public")
+params = st.query_params
+mode = params.get("mode", "public")
+
+if isinstance(mode, list):
+    mode = mode[0]
 
 IS_ADMIN = (mode == "admin")
 
-if IS_ADMIN:
-    st.title("🔐 Tournament Admin Panel")
-else:
-    st.title("🏟️ Live Tournament Board")
+st.title("🔐 Tournament Admin Panel" if IS_ADMIN else "🏟️ Live Tournament Board")
 
-
+# -------------------------------
+# TEAMS PER TOURNAMENT
+# -------------------------------
 TEAMS_BY_TOURNAMENT = {
-    "Mixed Group 1": ["Team A", "Team B", "Team C", "Team D"],
+    "Mixed Group 1": ["Republica", "Momin FC", "Tyne Sliders", "1in12"],
     "Mixed Group 2": ["Team E", "Team F", "Team G", "Team H"],
     "Mixed Group 3": ["Team I", "Team J", "Team K", "Team L"],
     "FLINTA Group 1": ["Team M", "Team N", "Team O", "Team P"],
     "FLINTA Group 2": ["Team Q", "Team R", "Team S", "Team T"],
 }
 
-TOURNAMENTS = [
-    "Mixed Group 1",
-    "Mixed Group 2",
-    "Mixed Group 3",
-    "FLINTA Group 1",
-    "FLINTA Group 2"
-]
+TOURNAMENTS = list(TEAMS_BY_TOURNAMENT.keys())
 
 FILE = "tournament_data.csv"
 
-
+# -------------------------------
+# LOAD / SAVE (SAFE)
+# -------------------------------
 def load_data():
     if os.path.exists(FILE):
-        return pd.read_csv(FILE)
+        df = pd.read_csv(FILE)
+
+        # Ensure correct types
+        for col in ["score1", "score2"]:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
+
+        return df
+
     return pd.DataFrame(columns=["tournament", "team1", "team2", "score1", "score2"])
 
 
@@ -467,7 +473,15 @@ def save_data(df):
 if "data" not in st.session_state:
     st.session_state.data = load_data()
 
+# -------------------------------
+# FIXTURES
+# -------------------------------
+def fixtures(teams):
+    return list(combinations(teams, 2))
 
+# -------------------------------
+# TABLE COMPUTATION (SAFE)
+# -------------------------------
 def compute_table(df, teams):
     table = pd.DataFrame(index=teams, columns=[
         "P", "W", "D", "L", "GF", "GA", "GD", "Pts"
@@ -476,6 +490,10 @@ def compute_table(df, teams):
     for _, m in df.iterrows():
         t1, t2 = m["team1"], m["team2"]
         s1, s2 = int(m["score1"]), int(m["score2"])
+
+        # 🔥 SAFETY CHECK (prevents KeyError)
+        if t1 not in table.index or t2 not in table.index:
+            continue
 
         table.loc[t1, "P"] += 1
         table.loc[t2, "P"] += 1
@@ -503,16 +521,16 @@ def compute_table(df, teams):
 
     return table.sort_values(["Pts", "GD", "GF"], ascending=False)
 
-
-def fixtures(teams):
-    return list(combinations(teams, 2))
-
-
+# -------------------------------
+# TABS
+# -------------------------------
 tabs = st.tabs(TOURNAMENTS)
 
 for i, tournament in enumerate(TOURNAMENTS):
 
     with tabs[i]:
+
+        teams = TEAMS_BY_TOURNAMENT[tournament]
 
         st.subheader(f"🏆 {tournament}")
 
@@ -520,13 +538,13 @@ for i, tournament in enumerate(TOURNAMENTS):
         t_df = df[df["tournament"] == tournament]
 
         # -----------------------
-        # FIXTURES (PUBLIC)
+        # FIXTURES
         # -----------------------
         st.markdown("### 📅 Fixtures")
 
-        fx = fixtures(TEAMS_BY_TOURNAMENT[tournament])
+        fx = fixtures(teams)
 
-        played = set(zip(t_df["team1"], t_df["team2"]))
+        played = set(zip(t_df["team1"], t_df["team2"])) if not t_df.empty else set()
 
         st.dataframe(pd.DataFrame([
             {
@@ -538,26 +556,28 @@ for i, tournament in enumerate(TOURNAMENTS):
         ]), use_container_width=True)
 
         # -----------------------
-        # TABLE (PUBLIC)
+        # TABLE
         # -----------------------
         st.markdown("### 📊 League Table")
 
         if not t_df.empty:
-            st.dataframe(compute_table(t_df, TEAMS_BY_TOURNAMENT[tournament]), use_container_width=True)
+            st.dataframe(compute_table(t_df, teams), use_container_width=True)
         else:
             st.info("No matches yet.")
 
-
+        # -----------------------
+        # ADMIN PANEL
+        # -----------------------
         if IS_ADMIN:
             st.markdown("### 🔐 Enter Match Result")
 
             col1, col2 = st.columns(2)
 
             with col1:
-                team1 = st.selectbox("Team 1", TEAMS_BY_TOURNAMENT[tournament], key=f"{tournament}_t1")
+                team1 = st.selectbox("Team 1", teams, key=f"{tournament}_t1")
 
             with col2:
-                team2 = st.selectbox("Team 2", TEAMS_BY_TOURNAMENT[tournament], key=f"{tournament}_t2")
+                team2 = st.selectbox("Team 2", teams, key=f"{tournament}_t2")
 
             col3, col4 = st.columns(2)
 
