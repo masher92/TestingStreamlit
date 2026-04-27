@@ -64,7 +64,7 @@ if "match_id" not in st.session_state:
         st.session_state.match_id = int(st.session_state.data["id"].max())
     else:
         st.session_state.match_id = 0
-    )
+
 
 # -------------------------------
 # FIXTURES
