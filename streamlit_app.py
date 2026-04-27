@@ -3,7 +3,7 @@ import pandas as pd
 import os
 from itertools import combinations
 
-st.set_page_config(page_title="MAY DAY 2026", layout="wide")
+st.set_page_config(page_title="Tournament System", layout="wide")
 
 # -------------------------------
 # MODE CONTROL
@@ -16,17 +16,17 @@ if isinstance(mode, list):
 
 IS_ADMIN = (mode == "admin")
 
-st.title("MAY DAY 2026 (ADMIN)" if IS_ADMIN else "MAY DAY 2026")
+st.title("🔐 Tournament Admin Panel" if IS_ADMIN else "🏟️ Live Tournament Board")
 
 # -------------------------------
 # TEAMS PER TOURNAMENT
 # -------------------------------
 TEAMS_BY_TOURNAMENT = {
-    "Mixed Group 1": ["Republica 1", "Momin FC", "Tyne Sliders", "1in12"],
-    "Mixed Group 2": ["Republica 2", "Mount Pleasant", "Suma", "BBBC"],
-    "Mixed Group 3": ["Republica 3", "Republica 4", "Hadjuk Splint", "YSP"],
-    "FLINTA Group 1": ["Republica", "Rainbow Bastards", "Hyde Park", "Cows 1", "Glasgow Pride"],
-    "FLINTA Group 2": ["Cows 2", "FURD", "Cathkin Blazes", "DIY", "Bradford Baddies"],
+    "Mixed Group 1": ["Republica", "Momin FC", "Tyne Sliders", "1in12"],
+    "Mixed Group 2": ["Team E", "Team F", "Team G", "Team H"],
+    "Mixed Group 3": ["Team I", "Team J", "Team K", "Team L"],
+    "FLINTA Group 1": ["Team M", "Team N", "Team O", "Team P"],
+    "FLINTA Group 2": ["Team Q", "Team R", "Team S", "Team T"],
 }
 
 TOURNAMENTS = list(TEAMS_BY_TOURNAMENT.keys())
@@ -34,19 +34,21 @@ TOURNAMENTS = list(TEAMS_BY_TOURNAMENT.keys())
 FILE = "tournament_data.csv"
 
 # -------------------------------
-# LOAD / SAVE (SAFE)
+# LOAD / SAVE
 # -------------------------------
 def load_data():
     if os.path.exists(FILE):
         df = pd.read_csv(FILE)
 
-        # Ensure correct types
         for col in ["score1", "score2"]:
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
 
+        if "id" not in df.columns:
+            df["id"] = range(1, len(df) + 1)
+
         return df
 
-    return pd.DataFrame(columns=["tournament", "team1", "team2", "score1", "score2"])
+    return pd.DataFrame(columns=["id", "tournament", "team1", "team2", "score1", "score2"])
 
 
 def save_data(df):
@@ -55,6 +57,11 @@ def save_data(df):
 
 if "data" not in st.session_state:
     st.session_state.data = load_data()
+
+if "match_id" not in st.session_state:
+    st.session_state.match_id = (
+        int(st.session_state.data["id"].max()) if not st.session_state.data.empty else 0
+    )
 
 # -------------------------------
 # FIXTURES
@@ -74,7 +81,6 @@ def compute_table(df, teams):
         t1, t2 = m["team1"], m["team2"]
         s1, s2 = int(m["score1"]), int(m["score2"])
 
-        # 🔥 SAFETY CHECK (prevents KeyError)
         if t1 not in table.index or t2 not in table.index:
             continue
 
@@ -120,13 +126,12 @@ for i, tournament in enumerate(TOURNAMENTS):
         df = st.session_state.data
         t_df = df[df["tournament"] == tournament]
 
-        # -----------------------
+        # -------------------------------
         # FIXTURES
-        # -----------------------
+        # -------------------------------
         st.markdown("### 📅 Fixtures")
 
         fx = fixtures(teams)
-
         played = set(zip(t_df["team1"], t_df["team2"])) if not t_df.empty else set()
 
         st.dataframe(pd.DataFrame([
@@ -138,9 +143,9 @@ for i, tournament in enumerate(TOURNAMENTS):
             for a, b in fx
         ]), use_container_width=True)
 
-        # -----------------------
+        # -------------------------------
         # TABLE
-        # -----------------------
+        # -------------------------------
         st.markdown("### 📊 League Table")
 
         if not t_df.empty:
@@ -148,10 +153,11 @@ for i, tournament in enumerate(TOURNAMENTS):
         else:
             st.info("No matches yet.")
 
-        # -----------------------
+        # -------------------------------
         # ADMIN PANEL
-        # -----------------------
+        # -------------------------------
         if IS_ADMIN:
+
             st.markdown("### 🔐 Enter Match Result")
 
             col1, col2 = st.columns(2)
@@ -171,12 +177,12 @@ for i, tournament in enumerate(TOURNAMENTS):
                 score2 = st.number_input("Score 2", min_value=0, step=1, key=f"{tournament}_s2")
 
             if st.button("Submit Result", key=f"{tournament}_btn"):
-            
+
                 if team1 == team2:
                     st.error("A team cannot play itself.")
                 else:
                     # -------------------------------
-                    # CHECK FOR DUPLICATE MATCH
+                    # PREVENT DUPLICATE MATCH
                     # -------------------------------
                     existing = st.session_state.data[
                         (st.session_state.data["tournament"] == tournament) &
@@ -191,13 +197,16 @@ for i, tournament in enumerate(TOURNAMENTS):
                             )
                         )
                     ]
-            
+
                     if not existing.empty:
-                        st.error("⚠️ This fixture already has a result recorded.")
+                        st.error("⚠️ This match already has a result recorded.")
                     else:
+                        st.session_state.match_id += 1
+
                         st.session_state.data = pd.concat([
                             st.session_state.data,
                             pd.DataFrame([{
+                                "id": st.session_state.match_id,
                                 "tournament": tournament,
                                 "team1": team1,
                                 "team2": team2,
@@ -205,7 +214,41 @@ for i, tournament in enumerate(TOURNAMENTS):
                                 "score2": score2
                             }])
                         ], ignore_index=True)
-            
+
                         save_data(st.session_state.data)
                         st.success("Result saved!")
                         st.rerun()
+
+            # -------------------------------
+            # EDIT MATCH
+            # -------------------------------
+            st.markdown("### ✏️ Edit Match")
+
+            if not t_df.empty:
+
+                match_labels = t_df.apply(
+                    lambda r: f'ID {r["id"]}: {r["team1"]} {r["score1"]}-{r["score2"]} {r["team2"]}',
+                    axis=1
+                ).tolist()
+
+                selected = st.selectbox("Select match", match_labels, key=f"{tournament}_edit")
+
+                match_id = int(selected.split(":")[0].replace("ID", "").strip())
+
+                row = t_df[t_df["id"] == match_id].iloc[0]
+
+                new_s1 = st.number_input("New Score 1", value=int(row["score1"]), key=f"{tournament}_es1")
+                new_s2 = st.number_input("New Score 2", value=int(row["score2"]), key=f"{tournament}_es2")
+
+                if st.button("Update Match", key=f"{tournament}_update"):
+
+                    idx = st.session_state.data[
+                        st.session_state.data["id"] == match_id
+                    ].index[0]
+
+                    st.session_state.data.loc[idx, "score1"] = new_s1
+                    st.session_state.data.loc[idx, "score2"] = new_s2
+
+                    save_data(st.session_state.data)
+                    st.success("Match updated!")
+                    st.rerun()
