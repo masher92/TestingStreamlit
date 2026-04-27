@@ -117,20 +117,39 @@ def compute_table(df, teams):
 # -------------------------------
 if IS_ADMIN:
     st.markdown("## 🧨 Admin Controls")
-
-    reset_clicked = st.button(
-        "RESET ALL DATA (DANGER)",
-        key="global_reset_button"
+    
+    confirm = st.text_input(
+        "Type RESET to clear all tournament data",
+        key="reset_confirm_input"
     )
+    
+    if IS_ADMIN and confirm == "RESET":
+    
+        if st.button("Confirm Reset (this will delete everything)", key="final_reset_button"):
+    
+            st.session_state.data = pd.DataFrame(
+                columns=["id", "tournament", "team1", "team2", "score1", "score2"]
+            )
+    
+            save_data(st.session_state.data)
+            st.session_state.match_id = 0
+    
+            st.success("All data has been reset.")
+            st.rerun()
+        
+    # reset_clicked = st.button(
+    #     "RESET ALL DATA (DANGER)",
+    #     key="global_reset_button"
+    # )
 
-    if reset_clicked:
-        st.session_state.data = pd.DataFrame(
-            columns=["id", "tournament", "team1", "team2", "score1", "score2"]
-        )
-        save_data(st.session_state.data)
-        st.session_state.match_id = 0
-        st.success("All data reset")
-        st.rerun()
+    # if reset_clicked:
+    #     st.session_state.data = pd.DataFrame(
+    #         columns=["id", "tournament", "team1", "team2", "score1", "score2"]
+    #     )
+    #     save_data(st.session_state.data)
+    #     st.session_state.match_id = 0
+    #     st.success("All data reset")
+    #     st.rerun()
 
 # -------------------------------
 # TABS
