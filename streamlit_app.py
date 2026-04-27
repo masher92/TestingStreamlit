@@ -81,6 +81,7 @@
 
 import streamlit as st
 import pandas as pd
+import os
 
 st.set_page_config(page_title="Tournament Tracker", layout="wide")
 
@@ -91,34 +92,47 @@ st.title("⚽ Football Tournament Tracker")
 # -------------------------------
 TEAMS = ["Republica", "Momin FC", "Tyne Sliders", "1in12"]
 
-# -------------------------------
-# Session state
-# -------------------------------
-if "matches" not in st.session_state:
-    st.session_state.matches = []
+DATA_FILE = "matches.csv"
 
 # -------------------------------
-# Match entry (front-facing only)
+# Load / Save functions
 # -------------------------------
-st.header("📥 Add Match Result")
+def load_matches():
+    if os.path.exists(DATA_FILE):
+        return pd.read_csv(DATA_FILE).to_dict("records")
+    return []
+
+def save_matches(matches):
+    pd.DataFrame(matches).to_csv(DATA_FILE, index=False)
+
+# -------------------------------
+# Session state init
+# -------------------------------
+if "matches" not in st.session_state:
+    st.session_state.matches = load_matches()
+
+# -------------------------------
+# Referee input UI (big + simple)
+# -------------------------------
+st.header("📥 Enter Match Result")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    team1 = st.selectbox("Team 1", TEAMS)
+    team1 = st.selectbox("Team 1", TEAMS, key="t1")
 
 with col2:
-    team2 = st.selectbox("Team 2", TEAMS)
+    team2 = st.selectbox("Team 2", TEAMS, key="t2")
 
-score_col1, score_col2 = st.columns(2)
+col3, col4 = st.columns(2)
 
-with score_col1:
-    score1 = st.number_input("Score (Team 1)", min_value=0, step=1)
+with col3:
+    score1 = st.number_input("Score - Team 1", min_value=0, step=1)
 
-with score_col2:
-    score2 = st.number_input("Score (Team 2)", min_value=0, step=1)
+with col4:
+    score2 = st.number_input("Score - Team 2", min_value=0, step=1)
 
-if st.button("➕ Submit Result"):
+if st.button("✅ Submit Result", use_container_width=True):
     if team1 == team2:
         st.error("A team cannot play itself.")
     else:
@@ -128,7 +142,11 @@ if st.button("➕ Submit Result"):
             "score1": score1,
             "score2": score2
         })
-        st.success("Result added!")
+
+        save_matches(st.session_state.matches)
+        st.success("Result saved!")
+
+        st.rerun()
 
 # -------------------------------
 # Table computation
@@ -136,13 +154,11 @@ if st.button("➕ Submit Result"):
 def compute_table(teams, matches):
     table = pd.DataFrame(index=teams, columns=[
         "P", "W", "D", "L", "GF", "GA", "GD", "Pts"
-    ]).fillna(0)
-
-    table = table.astype(int)
+    ]).fillna(0).astype(int)
 
     for m in matches:
         t1, t2 = m["team1"], m["team2"]
-        s1, s2 = m["score1"], m["score2"]
+        s1, s2 = int(m["score1"]), int(m["score2"])
 
         table.loc[t1, "P"] += 1
         table.loc[t2, "P"] += 1
@@ -182,10 +198,7 @@ table = compute_table(TEAMS, st.session_state.matches)
 st.dataframe(table, use_container_width=True)
 
 # -------------------------------
-# Match history (collapsed)
+# Match history
 # -------------------------------
 with st.expander("📜 Match History"):
-    if st.session_state.matches:
-        st.dataframe(pd.DataFrame(st.session_state.matches))
-    else:
-        st.write("No matches recorded yet.")
+    st.dataframe(pd.DataFrame(st.session_state.matches))
