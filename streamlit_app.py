@@ -435,7 +435,13 @@ else:
     st.title("🏟️ Live Tournament Board")
 
 
-TEAMS = ["Republica", "Momin FC", "Tyne Sliders", "1in12"]
+TEAMS_BY_TOURNAMENT = {
+    "Mixed Group 1": ["Team A", "Team B", "Team C", "Team D"],
+    "Mixed Group 2": ["Team E", "Team F", "Team G", "Team H"],
+    "Mixed Group 3": ["Team I", "Team J", "Team K", "Team L"],
+    "FLINTA Group 1": ["Team M", "Team N", "Team O", "Team P"],
+    "FLINTA Group 2": ["Team Q", "Team R", "Team S", "Team T"],
+}
 
 TOURNAMENTS = [
     "Mixed Group 1",
@@ -518,7 +524,7 @@ for i, tournament in enumerate(TOURNAMENTS):
         # -----------------------
         st.markdown("### 📅 Fixtures")
 
-        fx = fixtures(TEAMS)
+        fx = fixtures(TEAMS_BY_TOURNAMENT[tournament])
 
         played = set(zip(t_df["team1"], t_df["team2"]))
 
@@ -537,7 +543,7 @@ for i, tournament in enumerate(TOURNAMENTS):
         st.markdown("### 📊 League Table")
 
         if not t_df.empty:
-            st.dataframe(compute_table(t_df, TEAMS), use_container_width=True)
+            st.dataframe(compute_table(t_df, TEAMS_BY_TOURNAMENT[tournament]), use_container_width=True)
         else:
             st.info("No matches yet.")
 
@@ -548,10 +554,10 @@ for i, tournament in enumerate(TOURNAMENTS):
             col1, col2 = st.columns(2)
 
             with col1:
-                team1 = st.selectbox("Team 1", TEAMS, key=f"{tournament}_t1")
+                team1 = st.selectbox("Team 1", TEAMS_BY_TOURNAMENT[tournament], key=f"{tournament}_t1")
 
             with col2:
-                team2 = st.selectbox("Team 2", TEAMS, key=f"{tournament}_t2")
+                team2 = st.selectbox("Team 2", TEAMS_BY_TOURNAMENT[tournament], key=f"{tournament}_t2")
 
             col3, col4 = st.columns(2)
 
