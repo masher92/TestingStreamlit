@@ -160,8 +160,17 @@ for i, tournament in enumerate(TOURNAMENTS):
         # ADMIN PANEL
         # -------------------------------
         if IS_ADMIN:
-
-            st.markdown("### 🔐 Enter Match Result")
+            if st.button("🧨 RESET ALL DATA (DANGER)"):
+                st.session_state.data = pd.DataFrame(
+                    columns=["id", "tournament", "team1", "team2", "score1", "score2"]
+                )
+                save_data(st.session_state.data)
+                st.session_state.match_id = 0
+                st.success("All tournament data has been reset.")
+                st.rerun()
+                
+        if IS_ADMIN:
+         st.markdown("### 🔐 Enter Match Result")
 
             col1, col2 = st.columns(2)
 
