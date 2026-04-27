@@ -82,100 +82,81 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Football Tournament Tracker", layout="wide")
+st.set_page_config(page_title="Tournament Tracker", layout="wide")
 
-st.title("⚽ Football Tournament Score Tracker")
+st.title("⚽ Football Tournament Tracker")
 
 # -------------------------------
-# Initialize session state
+# Hardcoded teams
 # -------------------------------
-if "teams" not in st.session_state:
-    st.session_state.teams = []
+TEAMS = ["Republica", "Momin FC", "Tyne Sliders", "1in12"]
 
+# -------------------------------
+# Session state
+# -------------------------------
 if "matches" not in st.session_state:
     st.session_state.matches = []
 
 # -------------------------------
-# Add teams
+# Match entry (front-facing only)
 # -------------------------------
-st.sidebar.header("Add Team")
-new_team = st.sidebar.text_input("Team name")
+st.header("📥 Add Match Result")
 
-if st.sidebar.button("Add Team"):
-    if new_team and new_team not in st.session_state.teams:
-        st.session_state.teams.append(new_team)
+col1, col2 = st.columns(2)
 
-st.sidebar.write("Teams:")
-st.sidebar.write(st.session_state.teams)
+with col1:
+    team1 = st.selectbox("Team 1", TEAMS)
 
-# -------------------------------
-# Record match
-# -------------------------------
-st.header("Record Match")
+with col2:
+    team2 = st.selectbox("Team 2", TEAMS)
 
-if len(st.session_state.teams) >= 2:
-    col1, col2, col3 = st.columns(3)
+score_col1, score_col2 = st.columns(2)
 
-    with col1:
-        team1 = st.selectbox("Team 1", st.session_state.teams, key="team1")
+with score_col1:
+    score1 = st.number_input("Score (Team 1)", min_value=0, step=1)
 
-    with col2:
-        team2 = st.selectbox("Team 2", st.session_state.teams, key="team2")
+with score_col2:
+    score2 = st.number_input("Score (Team 2)", min_value=0, step=1)
 
-    with col3:
-        st.write("")
-
-    score_col1, score_col2 = st.columns(2)
-
-    with score_col1:
-        score1 = st.number_input("Score Team 1", min_value=0, step=1)
-
-    with score_col2:
-        score2 = st.number_input("Score Team 2", min_value=0, step=1)
-
-    if st.button("Submit Result"):
-        if team1 != team2:
-            st.session_state.matches.append({
-                "team1": team1,
-                "team2": team2,
-                "score1": score1,
-                "score2": score2
-            })
-        else:
-            st.error("A team cannot play itself.")
+if st.button("➕ Submit Result"):
+    if team1 == team2:
+        st.error("A team cannot play itself.")
+    else:
+        st.session_state.matches.append({
+            "team1": team1,
+            "team2": team2,
+            "score1": score1,
+            "score2": score2
+        })
+        st.success("Result added!")
 
 # -------------------------------
-# Build league table
+# Table computation
 # -------------------------------
 def compute_table(teams, matches):
-    table = pd.DataFrame({
-        "Team": teams,
-        "P": 0, "W": 0, "D": 0, "L": 0,
-        "GF": 0, "GA": 0, "GD": 0, "Pts": 0
-    })
+    table = pd.DataFrame(index=teams, columns=[
+        "P", "W", "D", "L", "GF", "GA", "GD", "Pts"
+    ]).fillna(0)
 
-    table.set_index("Team", inplace=True)
+    table = table.astype(int)
 
-    for match in matches:
-        t1, t2 = match["team1"], match["team2"]
-        s1, s2 = match["score1"], match["score2"]
+    for m in matches:
+        t1, t2 = m["team1"], m["team2"]
+        s1, s2 = m["score1"], m["score2"]
 
-        # Played
         table.loc[t1, "P"] += 1
         table.loc[t2, "P"] += 1
 
-        # Goals
         table.loc[t1, "GF"] += s1
         table.loc[t1, "GA"] += s2
         table.loc[t2, "GF"] += s2
         table.loc[t2, "GA"] += s1
 
-        # Results
         if s1 > s2:
             table.loc[t1, "W"] += 1
             table.loc[t2, "L"] += 1
             table.loc[t1, "Pts"] += 3
-        elif s1 < s2:
+        elif s2 > s1:
             table.loc[t2, "W"] += 1
             table.loc[t1, "L"] += 1
             table.loc[t2, "Pts"] += 3
@@ -187,26 +168,24 @@ def compute_table(teams, matches):
 
     table["GD"] = table["GF"] - table["GA"]
 
-    table = table.sort_values(
+    return table.sort_values(
         by=["Pts", "GD", "GF"],
         ascending=[False, False, False]
     )
 
-    return table
-
 # -------------------------------
-# Display table
+# League table
 # -------------------------------
 st.header("🏆 League Table")
 
-if st.session_state.teams:
-    table = compute_table(st.session_state.teams, st.session_state.matches)
-    st.dataframe(table, use_container_width=True)
+table = compute_table(TEAMS, st.session_state.matches)
+st.dataframe(table, use_container_width=True)
 
 # -------------------------------
-# Match history
+# Match history (collapsed)
 # -------------------------------
-st.header("Match History")
-
-if st.session_state.matches:
-    st.write(pd.DataFrame(st.session_state.matches))
+with st.expander("📜 Match History"):
+    if st.session_state.matches:
+        st.dataframe(pd.DataFrame(st.session_state.matches))
+    else:
+        st.write("No matches recorded yet.")
