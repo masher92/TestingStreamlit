@@ -83,9 +83,9 @@ import streamlit as st
 import pandas as pd
 import os
 
-st.set_page_config(page_title="Tournament Tracker", layout="wide")
+st.set_page_config(page_title="May Day 2026", layout="wide")
 
-st.title("⚽ Football Tournament Tracker")
+st.title("May Day 2026⚽")
 
 # -------------------------------
 # Hardcoded teams
