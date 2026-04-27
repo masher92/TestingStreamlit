@@ -40,11 +40,12 @@ def load_data():
     if os.path.exists(FILE):
         df = pd.read_csv(FILE)
 
-        for col in ["score1", "score2"]:
-            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
-
+        # ensure required columns exist
         if "id" not in df.columns:
             df["id"] = range(1, len(df) + 1)
+
+        for col in ["score1", "score2"]:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
 
         return df
 
@@ -59,8 +60,10 @@ if "data" not in st.session_state:
     st.session_state.data = load_data()
 
 if "match_id" not in st.session_state:
-    st.session_state.match_id = (
-        int(st.session_state.data["id"].max()) if not st.session_state.data.empty else 0
+    if "id" in st.session_state.data.columns and not st.session_state.data.empty:
+        st.session_state.match_id = int(st.session_state.data["id"].max())
+    else:
+        st.session_state.match_id = 0
     )
 
 # -------------------------------
