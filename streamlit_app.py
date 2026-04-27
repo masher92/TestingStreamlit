@@ -3,7 +3,7 @@ import pandas as pd
 import os
 from itertools import combinations
 
-st.set_page_config(page_title="Tournament System", layout="wide")
+st.set_page_config(page_title="MAY DAY 2026", layout="wide")
 
 # -------------------------------
 # MODE CONTROL
@@ -16,7 +16,7 @@ if isinstance(mode, list):
 
 IS_ADMIN = (mode == "admin")
 
-st.title("🔐 Tournament Admin Panel" if IS_ADMIN else "🏟️ Live Tournament Board")
+st.title("MAY DAY 2026 (ADMIN)" if IS_ADMIN else "🏟️ MAY DAY 2026")
 
 # -------------------------------
 # TEAMS PER TOURNAMENT
