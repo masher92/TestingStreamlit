@@ -85,78 +85,52 @@ import os
 
 st.set_page_config(page_title="May Day 2026", layout="wide")
 
-st.title("May Day 2026⚽")
+st.title("⚽ May Day 2026")
 
 # -------------------------------
-# Hardcoded teams
+# Teams (placeholder for ALL groups)
 # -------------------------------
 TEAMS = ["Republica", "Momin FC", "Tyne Sliders", "1in12"]
 
-DATA_FILE = "matches.csv"
+# -------------------------------
+# Tournaments
+# -------------------------------
+TOURNAMENTS = [
+    "Mixed Group 1",
+    "Mixed Group 2",
+    "Mixed Group 3",
+    "FLINTA Group 1",
+    "FLINTA Group 2"
+]
+
+DATA_FILE = "matches_all_tournaments.csv"
 
 # -------------------------------
-# Load / Save functions
+# Load / Save
 # -------------------------------
-def load_matches():
+def load_data():
     if os.path.exists(DATA_FILE):
-        return pd.read_csv(DATA_FILE).to_dict("records")
-    return []
+        return pd.read_csv(DATA_FILE)
+    return pd.DataFrame(columns=["tournament", "team1", "team2", "score1", "score2"])
 
-def save_matches(matches):
-    pd.DataFrame(matches).to_csv(DATA_FILE, index=False)
-
-# -------------------------------
-# Session state init
-# -------------------------------
-if "matches" not in st.session_state:
-    st.session_state.matches = load_matches()
+def save_data(df):
+    df.to_csv(DATA_FILE, index=False)
 
 # -------------------------------
-# Referee input UI (big + simple)
+# Init state
 # -------------------------------
-st.header("📥 Enter Match Result")
-
-col1, col2 = st.columns(2)
-
-with col1:
-    team1 = st.selectbox("Team 1", TEAMS, key="t1")
-
-with col2:
-    team2 = st.selectbox("Team 2", TEAMS, key="t2")
-
-col3, col4 = st.columns(2)
-
-with col3:
-    score1 = st.number_input("Score - Team 1", min_value=0, step=1)
-
-with col4:
-    score2 = st.number_input("Score - Team 2", min_value=0, step=1)
-
-if st.button("✅ Submit Result", use_container_width=True):
-    if team1 == team2:
-        st.error("A team cannot play itself.")
-    else:
-        st.session_state.matches.append({
-            "team1": team1,
-            "team2": team2,
-            "score1": score1,
-            "score2": score2
-        })
-
-        save_matches(st.session_state.matches)
-        st.success("Result saved!")
-
-        st.rerun()
+if "data" not in st.session_state:
+    st.session_state.data = load_data()
 
 # -------------------------------
-# Table computation
+# Compute table per tournament
 # -------------------------------
-def compute_table(teams, matches):
+def compute_table(df, teams):
     table = pd.DataFrame(index=teams, columns=[
         "P", "W", "D", "L", "GF", "GA", "GD", "Pts"
     ]).fillna(0).astype(int)
 
-    for m in matches:
+    for _, m in df.iterrows():
         t1, t2 = m["team1"], m["team2"]
         s1, s2 = int(m["score1"]), int(m["score2"])
 
@@ -190,15 +164,72 @@ def compute_table(teams, matches):
     )
 
 # -------------------------------
-# League table
+# Tabs
 # -------------------------------
-st.header("🏆 League Table")
+tabs = st.tabs(TOURNAMENTS)
 
-table = compute_table(TEAMS, st.session_state.matches)
-st.dataframe(table, use_container_width=True)
+for i, tournament in enumerate(TOURNAMENTS):
 
-# -------------------------------
-# Match history
-# -------------------------------
-with st.expander("📜 Match History"):
-    st.dataframe(pd.DataFrame(st.session_state.matches))
+    with tabs[i]:
+        st.subheader(f"🏆 {tournament}")
+
+        df = st.session_state.data
+        t_data = df[df["tournament"] == tournament]
+
+        # -----------------------
+        # Input match
+        # -----------------------
+        st.markdown("### 📥 Add Match Result")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            team1 = st.selectbox("Team 1", TEAMS, key=f"{tournament}_t1")
+
+        with col2:
+            team2 = st.selectbox("Team 2", TEAMS, key=f"{tournament}_t2")
+
+        col3, col4 = st.columns(2)
+
+        with col3:
+            score1 = st.number_input("Score Team 1", min_value=0, step=1, key=f"{tournament}_s1")
+
+        with col4:
+            score2 = st.number_input("Score Team 2", min_value=0, step=1, key=f"{tournament}_s2")
+
+        if st.button("Submit Result", key=f"{tournament}_btn"):
+            if team1 == team2:
+                st.error("A team cannot play itself.")
+            else:
+                new_row = pd.DataFrame([{
+                    "tournament": tournament,
+                    "team1": team1,
+                    "team2": team2,
+                    "score1": score1,
+                    "score2": score2
+                }])
+
+                st.session_state.data = pd.concat(
+                    [st.session_state.data, new_row],
+                    ignore_index=True
+                )
+
+                save_data(st.session_state.data)
+                st.rerun()
+
+        # -----------------------
+        # Table
+        # -----------------------
+        st.markdown("### 📊 League Table")
+
+        if not t_data.empty:
+            table = compute_table(t_data, TEAMS)
+            st.dataframe(table, use_container_width=True)
+        else:
+            st.info("No matches yet.")
+
+        # -----------------------
+        # History
+        # -----------------------
+        with st.expander("📜 Match History"):
+            st.dataframe(t_data)
