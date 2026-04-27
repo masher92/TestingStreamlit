@@ -16,7 +16,7 @@ if isinstance(mode, list):
 
 IS_ADMIN = (mode == "admin")
 
-st.title("🔐 Tournament Admin Panel" if IS_ADMIN else "🏟️ Live Tournament Board")
+st.title("🔐 Tournament Admin Panel" if IS_ADMIN else "🏟️ May Day Scores on the Dooors")
 
 # -------------------------------
 # TEAMS PER TOURNAMENT
