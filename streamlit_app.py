@@ -16,7 +16,7 @@ if isinstance(mode, list):
 
 IS_ADMIN = (mode == "admin")
 
-st.title("MAY DAY 2026 (ADMIN)" if IS_ADMIN else "🏟️ MAY DAY 2026")
+st.title("MAY DAY 2026 (ADMIN)" if IS_ADMIN else "MAY DAY 2026")
 
 # -------------------------------
 # TEAMS PER TOURNAMENT
