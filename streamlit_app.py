@@ -85,7 +85,7 @@ import os
 
 st.set_page_config(page_title="May Day 2026", layout="wide")
 
-st.title("⚽ May Day 2026")
+st.title("May Day 2026")
 
 # -------------------------------
 # Teams (placeholder for ALL groups)
