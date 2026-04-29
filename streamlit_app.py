@@ -335,8 +335,6 @@ for i, tournament in enumerate(TOURNAMENTS):
             schedule = FIXTURES_BY_TOURNAMENT.get(tournament, [])
         
             team_matches = []
-
-            st.write(schedule)
             for m in schedule:
                 home = m["team1"]
                 away = m["team2"]
