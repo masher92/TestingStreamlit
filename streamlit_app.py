@@ -68,8 +68,21 @@ if "match_id" not in st.session_state:
 # -------------------------------
 # FIXTURES
 # -------------------------------
-def fixtures(teams):
-    return list(combinations(teams, 2))
+# def fixtures(teams):
+#     return list(combinations(teams, 2))
+
+FIXTURES_BY_TOURNAMENT = {
+    "Mixed Group 1": [
+        {"time": "10:00", "team1": "Republica", "team2": "Momin FC"},
+        {"time": "10:20", "team1": "Tyne Sliders", "team2": "1in12"},
+        {"time": "10:40", "team1": "Republica", "team2": "Tyne Sliders"},
+        {"time": "11:00", "team1": "Momin FC", "team2": "1in12"},
+        {"time": "11:20", "team1": "Republica", "team2": "1in12"},
+        {"time": "11:40", "team1": "Momin FC", "team2": "Tyne Sliders"},
+    ],
+
+    # repeat for other groups...
+}
 
 # -------------------------------
 # TABLE COMPUTATION (SAFE)
@@ -172,17 +185,35 @@ for i, tournament in enumerate(TOURNAMENTS):
         # -----------------------
         st.markdown("### 📅 Fixtures")
 
-        fx = fixtures(teams)
-        played = set(zip(t_df["team1"], t_df["team2"])) if not t_df.empty else set()
+        # fx = fixtures(teams)
+        # played = set(zip(t_df["team1"], t_df["team2"])) if not t_df.empty else set()
 
-        st.dataframe(pd.DataFrame([
+        # st.dataframe(pd.DataFrame([
+        #     {
+        #         "Home": a,
+        #         "Away": b,
+        #         "Played": (a, b) in played or (b, a) in played
+        #     }
+        #     for a, b in fx
+        # ]), use_container_width=True)
+
+        schedule = FIXTURES_BY_TOURNAMENT[tournament]
+
+        played = set(zip(t_df["team1"], t_df["team2"])) if not t_df.empty else set()
+        
+        fixtures_df = pd.DataFrame([
             {
-                "Home": a,
-                "Away": b,
-                "Played": (a, b) in played or (b, a) in played
+                "Time": m["time"],
+                "Home": m["team1"],
+                "Away": m["team2"],
+                "Played": (m["team1"], m["team2"]) in played or (m["team2"], m["team1"]) in played
             }
-            for a, b in fx
-        ]), use_container_width=True)
+            for m in schedule
+        ])
+        
+        st.dataframe(fixtures_df, use_container_width=True, hide_index=True)
+
+        
 
 
 
