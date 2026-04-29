@@ -234,29 +234,29 @@ for i, tournament in enumerate(TOURNAMENTS):
         # -----------------------
         # MATCH RESULTS SUMMARY (PUBLIC)
         # -----------------------
-        if not IS_ADMIN:
-            st.markdown("### 📝 Match Results")
+        # if not IS_ADMIN:
+        #     st.markdown("### 📝 Match Results")
 
-            if not t_df.empty:
+        #     if not t_df.empty:
 
-                results_df = t_df.copy()
+        #         results_df = t_df.copy()
 
-                results_df["Result"] = results_df.apply(
-                    lambda r: f'{r["team1"]} {int(r["score1"])} - {int(r["score2"])} {r["team2"]}',
-                    axis=1
-                )
+        #         results_df["Result"] = results_df.apply(
+        #             lambda r: f'{r["team1"]} {int(r["score1"])} - {int(r["score2"])} {r["team2"]}',
+        #             axis=1
+        #         )
 
-                # Optional: sort by most recent match (highest ID first)
-                results_df = results_df.sort_values("id", ascending=False)
+        #         # Optional: sort by most recent match (highest ID first)
+        #         results_df = results_df.sort_values("id", ascending=False)
 
-                st.dataframe(
-                    results_df[["Result"]],
-                    use_container_width=True,
-                    hide_index=True
-                )
+        #         st.dataframe(
+        #             results_df[["Result"]],
+        #             use_container_width=True,
+        #             hide_index=True
+        #         )
 
-            else:
-                st.info("No match results yet.")
+        #     else:
+        #         st.info("No match results yet.")
 
         # -----------------------
         # TABLE
