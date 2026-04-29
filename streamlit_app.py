@@ -394,33 +394,34 @@ for i, tournament in enumerate(TOURNAMENTS):
         # -----------------------
         # EDIT MATCH
         # -----------------------
-        st.markdown("### ✏️ Edit Match")
-
-        if not t_df.empty:
-
-            labels = t_df.apply(
-                lambda r: f'ID {r["id"]}: {r["team1"]} {r["score1"]}-{r["score2"]} {r["team2"]}',
-                axis=1
-            ).tolist()
-
-            selected = st.selectbox("Select match", labels, key=f"{tournament}_edit")
-
-            match_id = int(selected.split(":")[0].replace("ID", "").strip())
-
-            row = t_df[t_df["id"] == match_id].iloc[0]
-
-            new_s1 = st.number_input("New Score 1", value=int(row["score1"]), key=f"{tournament}_es1")
-            new_s2 = st.number_input("New Score 2", value=int(row["score2"]), key=f"{tournament}_es2")
-
-            if st.button("Update Match", key=f"{tournament}_update"):
-
-                idx = st.session_state.data[
-                    st.session_state.data["id"] == match_id
-                ].index[0]
-
-                st.session_state.data.loc[idx, "score1"] = new_s1
-                st.session_state.data.loc[idx, "score2"] = new_s2
-
-                save_data(st.session_state.data)
-                st.success("Match updated!")
-                st.rerun()
+        if  IS_ADMIN:
+            st.markdown("### ✏️ Edit Match")
+    
+            if not t_df.empty:
+    
+                labels = t_df.apply(
+                    lambda r: f'ID {r["id"]}: {r["team1"]} {r["score1"]}-{r["score2"]} {r["team2"]}',
+                    axis=1
+                ).tolist()
+    
+                selected = st.selectbox("Select match", labels, key=f"{tournament}_edit")
+    
+                match_id = int(selected.split(":")[0].replace("ID", "").strip())
+    
+                row = t_df[t_df["id"] == match_id].iloc[0]
+    
+                new_s1 = st.number_input("New Score 1", value=int(row["score1"]), key=f"{tournament}_es1")
+                new_s2 = st.number_input("New Score 2", value=int(row["score2"]), key=f"{tournament}_es2")
+    
+                if st.button("Update Match", key=f"{tournament}_update"):
+    
+                    idx = st.session_state.data[
+                        st.session_state.data["id"] == match_id
+                    ].index[0]
+    
+                    st.session_state.data.loc[idx, "score1"] = new_s1
+                    st.session_state.data.loc[idx, "score2"] = new_s2
+    
+                    save_data(st.session_state.data)
+                    st.success("Match updated!")
+                    st.rerun()
