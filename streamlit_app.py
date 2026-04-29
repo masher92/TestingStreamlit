@@ -16,7 +16,7 @@ if isinstance(mode, list):
 
 IS_ADMIN = (mode == "admin")
 
-st.title("🔐 Tournament Admin Panel" if IS_ADMIN else "May Day Scores")
+st.title("🔐 Admin" if IS_ADMIN else "May Day Scores")
 
 # -------------------------------
 # TEAMS PER TOURNAMENT
@@ -137,7 +137,7 @@ def compute_table(df, teams):
 # GLOBAL ADMIN CONTROLS (IMPORTANT FIX)
 # -------------------------------
 if IS_ADMIN:
-    st.markdown("## 🧨 Admin Controls")
+    st.markdown("## 🧨 Reset scores")
     
     confirm = st.text_input(
         "Type RESET to clear all tournament data",
