@@ -197,19 +197,33 @@ for i, tournament in enumerate(TOURNAMENTS):
         #     for a, b in fx
         # ]), use_container_width=True)
 
+        
+
+        
         schedule = FIXTURES_BY_TOURNAMENT[tournament]
 
         played = set(zip(t_df["team1"], t_df["team2"])) if not t_df.empty else set()
-        
+                
+        def get_score(t1, t2, df):
+                    match = df[
+                        ((df["team1"] == t1) & (df["team2"] == t2)) |
+                        ((df["team1"] == t2) & (df["team2"] == t1))
+                    ]
+                    if match.empty:
+                        return ""
+                    r = match.iloc[0]
+                    return f'{int(r["score1"])} - {int(r["score2"])}'
+                
+                
         fixtures_df = pd.DataFrame([
-            {
-                "Time": m["time"],
-                "Home": m["team1"],
-                "Away": m["team2"],
-                "Played": (m["team1"], m["team2"]) in played or (m["team2"], m["team1"]) in played
-            }
-            for m in schedule
-        ])
+                    {
+                        "Time": m["time"],
+                        "Home": m["team1"],
+                        "Score": get_score(m["team1"], m["team2"], t_df),
+                        "Away": m["team2"],
+                    }
+                    for m in schedule
+                ])
         
         st.dataframe(fixtures_df, use_container_width=True, hide_index=True)
 
