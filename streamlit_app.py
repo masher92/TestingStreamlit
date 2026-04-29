@@ -338,16 +338,19 @@ for i, tournament in enumerate(TOURNAMENTS):
 
             st.write(schedule)
             for m in schedule:
-                if m["Home"] == selected_team or m["Away"] == selected_team:
-        
-                    opponent = m["Away"] if m["Home"] == selected_team else m["Home"]
-                    home_away = "vs" if m["Home"] == selected_team else "@"
-        
+                home = m["team1"]
+                away = m["team2"]
+                time = m["time"]
+                
+                if home == selected_team or away == selected_team:
+              
+                    opponent = away if home == selected_team else home
+                    home_away = "vs" if home == selected_team else "@"
+                    
                     team_matches.append({
-                        "Time": m["time"],
+                        "Time": time,
                         "Match": f"{selected_team} {home_away} {opponent}"
                     })
-        
             if team_matches:
                 st.success(f"Fixtures for {selected_team}")
         
