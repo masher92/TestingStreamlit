@@ -23,7 +23,7 @@ st.title("🔐 Tournament Admin Panel" if IS_ADMIN else "May Day Scores")
 # -------------------------------
 TEAMS_BY_TOURNAMENT = {
     "Mixed Group 1": ["Republica", "Momin FC", "Tyne Sliders", "1in12"],
-    # "Mixed Group 2": ["Team E", "Team F", "Team G", "Team H"],
+    "Flinta Group 2": ["Republica", "Hyde Park", "FURD", "Rainbow Bastards"],
     # "Mixed Group 3": ["Team I", "Team J", "Team K", "Team L"],
     # "FLINTA Group 1": ["Team M", "Team N", "Team O", "Team P"],
     # "FLINTA Group 2": ["Team Q", "Team R", "Team S", "Team T"],
@@ -79,6 +79,14 @@ FIXTURES_BY_TOURNAMENT = {
         {"time": "11:00", "team1": "Momin FC", "team2": "1in12"},
         {"time": "11:20", "team1": "Republica", "team2": "1in12"},
         {"time": "11:40", "team1": "Momin FC", "team2": "Tyne Sliders"},
+    ],
+        "FLINTA Group 1": [
+        {"time": "10:00", "team1": "Republica", "team2": "FURD"},
+        {"time": "10:20", "team1": "Hyde Park", "team2": "Rainbow Bastards"},
+        {"time": "10:40", "team1": "Republica", "team2": "Hyde Park"},
+        {"time": "11:00", "team1": "FURD", "team2": "Rainbow Bastards"},
+        {"time": "11:20", "team1": "Republica", "team2": "Rainbow Bastards"},
+        {"time": "11:40", "team1": "FURD", "team2": "Hyde Park"},
     ],
 
     # repeat for other groups...
