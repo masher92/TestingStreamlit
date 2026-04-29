@@ -133,68 +133,103 @@ def compute_table(df, teams):
 
     return table.sort_values(["Pts", "GD", "GF"], ascending=False)
 
-    # -----------------------
-    # ADMIN PANEL
-    # -----------------------
-    if IS_ADMIN:
+# -----------------------
+# ADMIN PANEL
+# -----------------------
+if IS_ADMIN:
 
-        st.markdown("### 🔐 Enter Match Result")
+    st.markdown("### 🔐 Enter Match Result")
 
-        col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
-        with col1:
-            team1 = st.selectbox("Team 1", teams, key=f"{tournament}_t1")
+    with col1:
+        team1 = st.selectbox("Team 1", teams, key=f"{tournament}_t1")
 
-        with col2:
-            team2 = st.selectbox("Team 2", teams, key=f"{tournament}_t2")
+    with col2:
+        team2 = st.selectbox("Team 2", teams, key=f"{tournament}_t2")
 
-        col3, col4 = st.columns(2)
+    col3, col4 = st.columns(2)
 
-        with col3:
-            score1 = st.number_input("Score 1", min_value=0, step=1, key=f"{tournament}_s1")
+    with col3:
+        score1 = st.number_input("Score 1", min_value=0, step=1, key=f"{tournament}_s1")
 
-        with col4:
-            score2 = st.number_input("Score 2", min_value=0, step=1, key=f"{tournament}_s2")
+    with col4:
+        score2 = st.number_input("Score 2", min_value=0, step=1, key=f"{tournament}_s2")
 
-        if st.button("Submit Result", key=f"{tournament}_btn"):
+    if st.button("Submit Result", key=f"{tournament}_btn"):
 
-            if team1 == team2:
-                st.error("A team cannot play itself.")
-            else:
-                existing = st.session_state.data[
-                    (st.session_state.data["tournament"] == tournament) &
+        if team1 == team2:
+            st.error("A team cannot play itself.")
+        else:
+            existing = st.session_state.data[
+                (st.session_state.data["tournament"] == tournament) &
+                (
                     (
-                        (
-                            (st.session_state.data["team1"] == team1) &
-                            (st.session_state.data["team2"] == team2)
-                        ) |
-                        (
-                            (st.session_state.data["team1"] == team2) &
-                            (st.session_state.data["team2"] == team1)
-                        )
+                        (st.session_state.data["team1"] == team1) &
+                        (st.session_state.data["team2"] == team2)
+                    ) |
+                    (
+                        (st.session_state.data["team1"] == team2) &
+                        (st.session_state.data["team2"] == team1)
                     )
-                ]
+                )
+            ]
 
-                if not existing.empty:
-                    st.error("⚠️ This match already exists.")
-                else:
-                    st.session_state.match_id += 1
+            if not existing.empty:
+                st.error("⚠️ This match already exists.")
+            else:
+                st.session_state.match_id += 1
 
-                    st.session_state.data = pd.concat([
-                        st.session_state.data,
-                        pd.DataFrame([{
-                            "id": st.session_state.match_id,
-                            "tournament": tournament,
-                            "team1": team1,
-                            "team2": team2,
-                            "score1": score1,
-                            "score2": score2
-                        }])
-                    ], ignore_index=True)
+                st.session_state.data = pd.concat([
+                    st.session_state.data,
+                    pd.DataFrame([{
+                        "id": st.session_state.match_id,
+                        "tournament": tournament,
+                        "team1": team1,
+                        "team2": team2,
+                        "score1": score1,
+                        "score2": score2
+                    }])
+                ], ignore_index=True)
 
-                    save_data(st.session_state.data)
-                    st.success("Result saved!")
-                    st.rerun()
+                save_data(st.session_state.data)
+                st.success("Result saved!")
+                st.rerun()
+                
+    # -----------------------
+    # EDIT MATCH
+    # -----------------------
+    if  IS_ADMIN:
+        st.markdown("### ✏️ Edit Match")
+
+        if not t_df.empty:
+
+            labels = t_df.apply(
+                lambda r: f'ID {r["id"]}: {r["team1"]} {r["score1"]}-{r["score2"]} {r["team2"]}',
+                axis=1
+            ).tolist()
+
+            selected = st.selectbox("Select match", labels, key=f"{tournament}_edit")
+
+            match_id = int(selected.split(":")[0].replace("ID", "").strip())
+
+            row = t_df[t_df["id"] == match_id].iloc[0]
+
+            new_s1 = st.number_input("New Score 1", value=int(row["score1"]), key=f"{tournament}_es1")
+            new_s2 = st.number_input("New Score 2", value=int(row["score2"]), key=f"{tournament}_es2")
+
+            if st.button("Update Match", key=f"{tournament}_update"):
+
+                idx = st.session_state.data[
+                    st.session_state.data["id"] == match_id
+                ].index[0]
+
+                st.session_state.data.loc[idx, "score1"] = new_s1
+                st.session_state.data.loc[idx, "score2"] = new_s2
+
+                save_data(st.session_state.data)
+                st.success("Match updated!")
+                st.rerun()
 
 
 
@@ -395,37 +430,3 @@ for i, tournament in enumerate(TOURNAMENTS):
 
 
 
-        # -----------------------
-        # EDIT MATCH
-        # -----------------------
-        if  IS_ADMIN:
-            st.markdown("### ✏️ Edit Match")
-    
-            if not t_df.empty:
-    
-                labels = t_df.apply(
-                    lambda r: f'ID {r["id"]}: {r["team1"]} {r["score1"]}-{r["score2"]} {r["team2"]}',
-                    axis=1
-                ).tolist()
-    
-                selected = st.selectbox("Select match", labels, key=f"{tournament}_edit")
-    
-                match_id = int(selected.split(":")[0].replace("ID", "").strip())
-    
-                row = t_df[t_df["id"] == match_id].iloc[0]
-    
-                new_s1 = st.number_input("New Score 1", value=int(row["score1"]), key=f"{tournament}_es1")
-                new_s2 = st.number_input("New Score 2", value=int(row["score2"]), key=f"{tournament}_es2")
-    
-                if st.button("Update Match", key=f"{tournament}_update"):
-    
-                    idx = st.session_state.data[
-                        st.session_state.data["id"] == match_id
-                    ].index[0]
-    
-                    st.session_state.data.loc[idx, "score1"] = new_s1
-                    st.session_state.data.loc[idx, "score2"] = new_s2
-    
-                    save_data(st.session_state.data)
-                    st.success("Match updated!")
-                    st.rerun()
