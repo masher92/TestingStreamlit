@@ -288,4 +288,3 @@ if IS_ADMIN:
             st.session_state.match_id = 0
             st.success("All data reset")
             st.rerun()
-```
