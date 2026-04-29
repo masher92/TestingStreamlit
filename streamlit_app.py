@@ -184,10 +184,7 @@ for i, tournament in enumerate(TOURNAMENTS):
             for a, b in fx
         ]), use_container_width=True)
 
-        # -----------------------
-        # TABLE
-        # -----------------------
-        st.markdown("### 📊 League Table")
+
 
         # -----------------------
         # MATCH RESULTS SUMMARY (PUBLIC)
@@ -216,7 +213,11 @@ for i, tournament in enumerate(TOURNAMENTS):
             else:
                 st.info("No match results yet.")
 
+        # -----------------------
+        # TABLE
+        # -----------------------
         
+        st.markdown("### 📊 League Table")
         if not t_df.empty:
             st.dataframe(compute_table(t_df, teams), use_container_width=True)
         else:
