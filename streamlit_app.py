@@ -339,8 +339,8 @@ for i, tournament in enumerate(TOURNAMENTS):
             for m in schedule:
                 if m["Home"] == selected_team or m["Away"] == selected_team:
         
-                    opponent = m["away"] if m["home"] == selected_team else m["home"]
-                    home_away = "vs" if m["home"] == selected_team else "@"
+                    opponent = m["away"] if m["Home"] == selected_team else m["Home"]
+                    home_away = "vs" if m["Home"] == selected_team else "@"
         
                     team_matches.append({
                         "Time": m["time"],
