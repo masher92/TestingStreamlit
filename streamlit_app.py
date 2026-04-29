@@ -313,52 +313,53 @@ for i, tournament in enumerate(TOURNAMENTS):
         # -----------------------
         # TEAM-SPECIFIC FIXTURES
         # -----------------------
-        st.markdown("### 🔎 Find Your Matches")
-        
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            selected_team = st.selectbox(
-                "Select your team",
-                teams,
-                key=f"{tournament}_team_lookup"
-            )
-        
-        with col2:
-            show_btn = st.button(
-                "Show My Fixtures",
-                key=f"{tournament}_show_team_btn"
-            )
-        
-        if show_btn:
-        
-            schedule = FIXTURES_BY_TOURNAMENT.get(tournament, [])
-        
-            team_matches = []
-            for m in schedule:
-                home = m["team1"]
-                away = m["team2"]
-                time = m["time"]
-                
-                if home == selected_team or away == selected_team:
-              
-                    opponent = away if home == selected_team else home
-                    home_away = "vs" if home == selected_team else "@"
-                    
-                    team_matches.append({
-                        "Time": time,
-                        "Match": f"{selected_team} {home_away} {opponent}"
-                    })
-            if team_matches:
-                st.success(f"Fixtures for {selected_team}")
-        
-                st.dataframe(
-                    pd.DataFrame(team_matches),
-                    use_container_width=True,
-                    hide_index=True
+        if  not IS_ADMIN:
+            st.markdown("### 🔎 Find Your Matches")
+            
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                selected_team = st.selectbox(
+                    "Select your team",
+                    teams,
+                    key=f"{tournament}_team_lookup"
                 )
-            else:
-                st.info("No fixtures found.")
+            
+            with col2:
+                show_btn = st.button(
+                    "Show My Fixtures",
+                    key=f"{tournament}_show_team_btn"
+                )
+            
+            if show_btn:
+            
+                schedule = FIXTURES_BY_TOURNAMENT.get(tournament, [])
+            
+                team_matches = []
+                for m in schedule:
+                    home = m["team1"]
+                    away = m["team2"]
+                    time = m["time"]
+                    
+                    if home == selected_team or away == selected_team:
+                  
+                        opponent = away if home == selected_team else home
+                        home_away = "vs" if home == selected_team else "@"
+                        
+                        team_matches.append({
+                            "Time": time,
+                            "Match": f"{selected_team} {home_away} {opponent}"
+                        })
+                if team_matches:
+                    st.success(f"Fixtures for {selected_team}")
+            
+                    st.dataframe(
+                        pd.DataFrame(team_matches),
+                        use_container_width=True,
+                        hide_index=True
+                    )
+                else:
+                    st.info("No fixtures found.")
 
 
 
