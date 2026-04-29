@@ -421,6 +421,6 @@ for i, tournament in enumerate(TOURNAMENTS):
                 st.session_state.data.loc[idx, "score1"] = new_s1
                 st.session_state.data.loc[idx, "score2"] = new_s2
 
-                    save_data(st.session_state.data)
-                    st.success("Match updated!")
-                    st.rerun()
+                save_data(st.session_state.data)
+                st.success("Match updated!")
+                st.rerun()
