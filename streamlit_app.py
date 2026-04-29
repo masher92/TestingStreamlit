@@ -236,83 +236,6 @@ for i, tournament in enumerate(TOURNAMENTS):
         st.dataframe(fixtures_df, use_container_width=True, hide_index=True)
 
         # -----------------------
-        # TEAM-SPECIFIC FIXTURES
-        # -----------------------
-        st.markdown("### 🔎 Find Your Matches")
-        
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            selected_team = st.selectbox(
-                "Select your team",
-                teams,
-                key=f"{tournament}_team_lookup"
-            )
-        
-        with col2:
-            show_btn = st.button(
-                "Show My Fixtures",
-                key=f"{tournament}_show_team_btn"
-            )
-        
-        if show_btn:
-        
-            schedule = FIXTURES_BY_TOURNAMENT.get(tournament, [])
-        
-            team_matches = []
-        
-            for m in schedule:
-                if m["home"] == selected_team or m["away"] == selected_team:
-        
-                    opponent = m["away"] if m["home"] == selected_team else m["home"]
-                    home_away = "vs" if m["home"] == selected_team else "@"
-        
-                    team_matches.append({
-                        "Time": m["time"],
-                        "Match": f"{selected_team} {home_away} {opponent}"
-                    })
-        
-            if team_matches:
-                st.success(f"Fixtures for {selected_team}")
-        
-                st.dataframe(
-                    pd.DataFrame(team_matches),
-                    use_container_width=True,
-                    hide_index=True
-                )
-            else:
-                st.info("No fixtures found.")
-
-
-
-        # -----------------------
-        # MATCH RESULTS SUMMARY (PUBLIC)
-        # -----------------------
-        # if not IS_ADMIN:
-        #     st.markdown("### 📝 Match Results")
-
-        #     if not t_df.empty:
-
-        #         results_df = t_df.copy()
-
-        #         results_df["Result"] = results_df.apply(
-        #             lambda r: f'{r["team1"]} {int(r["score1"])} - {int(r["score2"])} {r["team2"]}',
-        #             axis=1
-        #         )
-
-        #         # Optional: sort by most recent match (highest ID first)
-        #         results_df = results_df.sort_values("id", ascending=False)
-
-        #         st.dataframe(
-        #             results_df[["Result"]],
-        #             use_container_width=True,
-        #             hide_index=True
-        #         )
-
-        #     else:
-        #         st.info("No match results yet.")
-
-        # -----------------------
         # TABLE
         # -----------------------
         
@@ -384,6 +307,87 @@ for i, tournament in enumerate(TOURNAMENTS):
                         save_data(st.session_state.data)
                         st.success("Result saved!")
                         st.rerun()
+
+
+        
+        # -----------------------
+        # TEAM-SPECIFIC FIXTURES
+        # -----------------------
+        st.markdown("### 🔎 Find Your Matches")
+        
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            selected_team = st.selectbox(
+                "Select your team",
+                teams,
+                key=f"{tournament}_team_lookup"
+            )
+        
+        with col2:
+            show_btn = st.button(
+                "Show My Fixtures",
+                key=f"{tournament}_show_team_btn"
+            )
+        
+        if show_btn:
+        
+            schedule = FIXTURES_BY_TOURNAMENT.get(tournament, [])
+        
+            team_matches = []
+        
+            for m in schedule:
+                if m["Home"] == selected_team or m["Away"] == selected_team:
+        
+                    opponent = m["away"] if m["home"] == selected_team else m["home"]
+                    home_away = "vs" if m["home"] == selected_team else "@"
+        
+                    team_matches.append({
+                        "Time": m["time"],
+                        "Match": f"{selected_team} {home_away} {opponent}"
+                    })
+        
+            if team_matches:
+                st.success(f"Fixtures for {selected_team}")
+        
+                st.dataframe(
+                    pd.DataFrame(team_matches),
+                    use_container_width=True,
+                    hide_index=True
+                )
+            else:
+                st.info("No fixtures found.")
+
+
+
+        # -----------------------
+        # MATCH RESULTS SUMMARY (PUBLIC)
+        # -----------------------
+        # if not IS_ADMIN:
+        #     st.markdown("### 📝 Match Results")
+
+        #     if not t_df.empty:
+
+        #         results_df = t_df.copy()
+
+        #         results_df["Result"] = results_df.apply(
+        #             lambda r: f'{r["team1"]} {int(r["score1"])} - {int(r["score2"])} {r["team2"]}',
+        #             axis=1
+        #         )
+
+        #         # Optional: sort by most recent match (highest ID first)
+        #         results_df = results_df.sort_values("id", ascending=False)
+
+        #         st.dataframe(
+        #             results_df[["Result"]],
+        #             use_container_width=True,
+        #             hide_index=True
+        #         )
+
+        #     else:
+        #         st.info("No match results yet.")
+
+
 
             # -----------------------
             # EDIT MATCH
