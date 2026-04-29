@@ -235,7 +235,53 @@ for i, tournament in enumerate(TOURNAMENTS):
         
         st.dataframe(fixtures_df, use_container_width=True, hide_index=True)
 
+        # -----------------------
+        # TEAM-SPECIFIC FIXTURES
+        # -----------------------
+        st.markdown("### 🔎 Find Your Matches")
         
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            selected_team = st.selectbox(
+                "Select your team",
+                teams,
+                key=f"{tournament}_team_lookup"
+            )
+        
+        with col2:
+            show_btn = st.button(
+                "Show My Fixtures",
+                key=f"{tournament}_show_team_btn"
+            )
+        
+        if show_btn:
+        
+            schedule = FIXTURES_BY_TOURNAMENT.get(tournament, [])
+        
+            team_matches = []
+        
+            for m in schedule:
+                if m["home"] == selected_team or m["away"] == selected_team:
+        
+                    opponent = m["away"] if m["home"] == selected_team else m["home"]
+                    home_away = "vs" if m["home"] == selected_team else "@"
+        
+                    team_matches.append({
+                        "Time": m["time"],
+                        "Match": f"{selected_team} {home_away} {opponent}"
+                    })
+        
+            if team_matches:
+                st.success(f"Fixtures for {selected_team}")
+        
+                st.dataframe(
+                    pd.DataFrame(team_matches),
+                    use_container_width=True,
+                    hide_index=True
+                )
+            else:
+                st.info("No fixtures found.")
 
 
 
