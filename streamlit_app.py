@@ -23,10 +23,10 @@ st.title("🔐 Tournament Admin Panel" if IS_ADMIN else "May Day Scores")
 # -------------------------------
 TEAMS_BY_TOURNAMENT = {
     "Mixed Group 1": ["Republica", "Momin FC", "Tyne Sliders", "1in12"],
-    "Mixed Group 2": ["Team E", "Team F", "Team G", "Team H"],
-    "Mixed Group 3": ["Team I", "Team J", "Team K", "Team L"],
-    "FLINTA Group 1": ["Team M", "Team N", "Team O", "Team P"],
-    "FLINTA Group 2": ["Team Q", "Team R", "Team S", "Team T"],
+    # "Mixed Group 2": ["Team E", "Team F", "Team G", "Team H"],
+    # "Mixed Group 3": ["Team I", "Team J", "Team K", "Team L"],
+    # "FLINTA Group 1": ["Team M", "Team N", "Team O", "Team P"],
+    # "FLINTA Group 2": ["Team Q", "Team R", "Team S", "Team T"],
 }
 
 TOURNAMENTS = list(TEAMS_BY_TOURNAMENT.keys())
