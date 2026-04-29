@@ -133,6 +133,71 @@ def compute_table(df, teams):
 
     return table.sort_values(["Pts", "GD", "GF"], ascending=False)
 
+    # -----------------------
+    # ADMIN PANEL
+    # -----------------------
+    if IS_ADMIN:
+
+        st.markdown("### 🔐 Enter Match Result")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            team1 = st.selectbox("Team 1", teams, key=f"{tournament}_t1")
+
+        with col2:
+            team2 = st.selectbox("Team 2", teams, key=f"{tournament}_t2")
+
+        col3, col4 = st.columns(2)
+
+        with col3:
+            score1 = st.number_input("Score 1", min_value=0, step=1, key=f"{tournament}_s1")
+
+        with col4:
+            score2 = st.number_input("Score 2", min_value=0, step=1, key=f"{tournament}_s2")
+
+        if st.button("Submit Result", key=f"{tournament}_btn"):
+
+            if team1 == team2:
+                st.error("A team cannot play itself.")
+            else:
+                existing = st.session_state.data[
+                    (st.session_state.data["tournament"] == tournament) &
+                    (
+                        (
+                            (st.session_state.data["team1"] == team1) &
+                            (st.session_state.data["team2"] == team2)
+                        ) |
+                        (
+                            (st.session_state.data["team1"] == team2) &
+                            (st.session_state.data["team2"] == team1)
+                        )
+                    )
+                ]
+
+                if not existing.empty:
+                    st.error("⚠️ This match already exists.")
+                else:
+                    st.session_state.match_id += 1
+
+                    st.session_state.data = pd.concat([
+                        st.session_state.data,
+                        pd.DataFrame([{
+                            "id": st.session_state.match_id,
+                            "tournament": tournament,
+                            "team1": team1,
+                            "team2": team2,
+                            "score1": score1,
+                            "score2": score2
+                        }])
+                    ], ignore_index=True)
+
+                    save_data(st.session_state.data)
+                    st.success("Result saved!")
+                    st.rerun()
+
+
+
 # -------------------------------
 # GLOBAL ADMIN CONTROLS (IMPORTANT FIX)
 # -------------------------------
@@ -245,68 +310,6 @@ for i, tournament in enumerate(TOURNAMENTS):
         else:
             st.info("No matches yet.")
 
-        # -----------------------
-        # ADMIN PANEL
-        # -----------------------
-        if IS_ADMIN:
-
-            st.markdown("### 🔐 Enter Match Result")
-
-            col1, col2 = st.columns(2)
-
-            with col1:
-                team1 = st.selectbox("Team 1", teams, key=f"{tournament}_t1")
-
-            with col2:
-                team2 = st.selectbox("Team 2", teams, key=f"{tournament}_t2")
-
-            col3, col4 = st.columns(2)
-
-            with col3:
-                score1 = st.number_input("Score 1", min_value=0, step=1, key=f"{tournament}_s1")
-
-            with col4:
-                score2 = st.number_input("Score 2", min_value=0, step=1, key=f"{tournament}_s2")
-
-            if st.button("Submit Result", key=f"{tournament}_btn"):
-
-                if team1 == team2:
-                    st.error("A team cannot play itself.")
-                else:
-                    existing = st.session_state.data[
-                        (st.session_state.data["tournament"] == tournament) &
-                        (
-                            (
-                                (st.session_state.data["team1"] == team1) &
-                                (st.session_state.data["team2"] == team2)
-                            ) |
-                            (
-                                (st.session_state.data["team1"] == team2) &
-                                (st.session_state.data["team2"] == team1)
-                            )
-                        )
-                    ]
-
-                    if not existing.empty:
-                        st.error("⚠️ This match already exists.")
-                    else:
-                        st.session_state.match_id += 1
-
-                        st.session_state.data = pd.concat([
-                            st.session_state.data,
-                            pd.DataFrame([{
-                                "id": st.session_state.match_id,
-                                "tournament": tournament,
-                                "team1": team1,
-                                "team2": team2,
-                                "score1": score1,
-                                "score2": score2
-                            }])
-                        ], ignore_index=True)
-
-                        save_data(st.session_state.data)
-                        st.success("Result saved!")
-                        st.rerun()
 
 
         
